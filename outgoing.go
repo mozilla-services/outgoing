@@ -1,14 +1,13 @@
 package main
 
 import (
+	"crypto/hmac"
 	"crypto/sha1"
 	"crypto/sha256"
-	"crypto/hmac"
-	"fmt"
-	"log"
 	"flag"
-	"io"
+	"fmt"
 	"html"
+	"log"
 	"net/http"
 	"regexp"
 )
@@ -23,13 +22,13 @@ func init() {
 
 func sha1Str(msg string) string {
 	h := sha1.New()
-	io.WriteString(h, msg)
+	h.Write([]byte(msg))
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
 func sha256Mac(msg, key string) string {
 	mac := hmac.New(sha256.New, []byte(key))
-	io.WriteString(mac, msg)
+	mac.Write([]byte(msg))
 	return fmt.Sprintf("%x", mac.Sum(nil))
 }
 
@@ -39,7 +38,7 @@ func errorResp(w http.ResponseWriter) {
 }
 
 func validateSig(url, sig string) bool {
-	if sha1Str(*secretKey + url) == sig || sha256Mac(url, *secretKey) == sig {
+	if sha1Str(*secretKey+url) == sig || sha256Mac(url, *secretKey) == sig {
 		return true
 	}
 	return false

@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 )
+
 var redirectTemplate *template.Template
 
 func init() {
