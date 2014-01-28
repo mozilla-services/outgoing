@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http/httptest"
 	"net/http"
+	"strings"
 	"testing"
 )
 
@@ -63,6 +64,9 @@ func TestReq(t *testing.T) {
 	readReq(rec, req)
 	if rec.Code != 200 {
 		t.Errorf("Expected %d, returned %d.", 200, rec.Code)
+	}
+	if !strings.Contains(rec.Body.String(), "http://www.mywot.com/") {
+		t.Errorf("http://www.mywot.com/ is not in %s.", rec.Body.String())
 	}
 
 	h = hmac.New(sha256.New, []byte("badsecret"))
