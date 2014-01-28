@@ -3,6 +3,13 @@ outgoing
 
 A redirector for outgoing links.
 
+
+Testing
+-------
+```bash
+go test
+```
+
 Building
 -----
 ```bash
