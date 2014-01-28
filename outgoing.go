@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 var urlRe *regexp.Regexp
@@ -55,6 +56,10 @@ func bounce(w http.ResponseWriter, sig, url string) {
 		errorResp(w)
 		return
 	}
+	if !strings.Contains(safeUrl, "://") {
+		safeUrl = "http://" + safeUrl
+	}
+
 	err := redirectTemplate.Execute(
 		w,
 		&struct {
