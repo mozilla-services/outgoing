@@ -5,6 +5,8 @@ import (
 	"crypto/sha256"
 	"crypto/hmac"
 	"fmt"
+	"net/http/httptest"
+	"net/http"
 	"testing"
 )
 
@@ -12,6 +14,7 @@ func init() {
 	key := "secret"
 	secretKey = &key
 }
+
 func TestValidateSig(t *testing.T) {
 	url := "http://mozilla.org/en-US/"
 	s1 := sha1.New()
@@ -44,5 +47,35 @@ func TestValidateSig(t *testing.T) {
 
 	if validateSig(url, hSig) {
 		t.Errorf("bad url hash: %s did not match.", hSig)
+	}
+}
+
+func TestReq(t *testing.T) {
+	h := hmac.New(sha256.New, []byte("secret"))
+	h.Write([]byte("http://www.mywot.com/"))
+	hSig := fmt.Sprintf("%x", h.Sum(nil))
+
+	rec := httptest.NewRecorder()
+	req, err := http.NewRequest("GET", "/v1/" + hSig + "/http%3A//www.mywot.com/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	readReq(rec, req)
+	if rec.Code != 200 {
+		t.Errorf("Expected %d, returned %d.", 200, rec.Code)
+	}
+
+	h = hmac.New(sha256.New, []byte("badsecret"))
+	h.Write([]byte("http://www.mywot.com/"))
+	hSig = fmt.Sprintf("%x", h.Sum(nil))
+
+	rec = httptest.NewRecorder()
+	req, err = http.NewRequest("GET", "/v1/" + hSig + "/http%3A//www.mywot.com/", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	readReq(rec, req)
+	if rec.Code != 400 {
+		t.Errorf("Expected %d, returned %d.", 200, rec.Code)
 	}
 }
