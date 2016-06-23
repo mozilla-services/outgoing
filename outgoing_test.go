@@ -55,10 +55,10 @@ func getHmac(url, key string) string {
 }
 
 func TestReq(t *testing.T) {
-	hSig := getHmac("http://www.mywot.com/", "secret")
+	hSig := getHmac("http://www.mozilla.org/", "secret")
 
 	rec := httptest.NewRecorder()
-	req, err := http.NewRequest("GET", "/v1/"+hSig+"/http%3A//www.mywot.com/", nil)
+	req, err := http.NewRequest("GET", "/v1/"+hSig+"/http://www.mozilla.org/", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,14 +66,14 @@ func TestReq(t *testing.T) {
 	if rec.Code != 200 {
 		t.Errorf("Expected %d, returned %d.", 200, rec.Code)
 	}
-	if !strings.Contains(rec.Body.String(), "http://www.mywot.com/") {
-		t.Errorf("http://www.mywot.com/ is not in %s.", rec.Body.String())
+	if !strings.Contains(rec.Body.String(), "http://www.mozilla.org/") {
+		t.Errorf("http://www.mozilla.org/ is not in %s.", rec.Body.String())
 	}
 
-	hSig = getHmac("http://www.mywot.com/", "badsecret")
+	hSig = getHmac("http://www.mozilla.org/", "badsecret")
 
 	rec = httptest.NewRecorder()
-	req, err = http.NewRequest("GET", "/v1/"+hSig+"/http%3A//www.mywot.com/", nil)
+	req, err = http.NewRequest("GET", "/v1/"+hSig+"/http://www.mozilla.org/", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
