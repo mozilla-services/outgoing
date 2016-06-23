@@ -19,5 +19,5 @@ go build
 Running
 -------
 ```bash
-./outgoing -key OMGASECRET -addr ":9090"
+./outgoing -key ASECRET -addr ":9090"
 ```
