@@ -16,7 +16,7 @@ import (
 var urlRe = regexp.MustCompile(`.*?v1/([^/]+)/(.*)`)
 var secretKey = flag.String("key", "", "The secret key.")
 var debugFlag = flag.Bool("debug", false, "Enable debug logging.")
-var addr = flag.String("addr", ":9090", "Where to bind.")
+var addr = flag.String("addr", ":8000", "Where to bind.")
 
 func sha1Str(msg string) string {
 	h := sha1.New()
