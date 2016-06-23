@@ -14,6 +14,7 @@ import (
 func init() {
 	key := "secret"
 	secretKey = &key
+	*debugFlag = true
 }
 
 func TestValidateSig(t *testing.T) {

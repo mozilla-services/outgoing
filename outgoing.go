@@ -13,13 +13,10 @@ import (
 	"strings"
 )
 
-var urlRe *regexp.Regexp
+var urlRe = regexp.MustCompile(`.*?v1/([^/]+)/(.*)`)
 var secretKey = flag.String("key", "", "The secret key.")
+var debugFlag = flag.Bool("debug", false, "Enable debug logging.")
 var addr = flag.String("addr", ":9090", "Where to bind.")
-
-func init() {
-	urlRe = regexp.MustCompile(`.*?v1/([^/]+)/(.*)`)
-}
 
 func sha1Str(msg string) string {
 	h := sha1.New()
@@ -47,12 +44,14 @@ func validateSig(url, sig string) bool {
 
 func bounce(w http.ResponseWriter, sig, url string) {
 	if !validateSig(url, sig) {
+		debug("Could not validate sig, url: %v, sig: %v", url, sig)
 		errorResp(w)
 		return
 	}
 
 	safeUrl := html.EscapeString(url)
 	if safeUrl[:10] == "javascript" {
+		debug("URL starts with javascript url: %v", url)
 		errorResp(w)
 		return
 	}
@@ -86,6 +85,13 @@ func home(w http.ResponseWriter) {
 
 }
 
+func debug(format string, v ...interface{}) {
+	if !*debugFlag {
+		return
+	}
+	log.Printf(format, v...)
+}
+
 func readReq(w http.ResponseWriter, req *http.Request) {
 	if req.URL.RequestURI() == "/" {
 		home(w)
@@ -94,6 +100,7 @@ func readReq(w http.ResponseWriter, req *http.Request) {
 
 	m := urlRe.FindStringSubmatch(req.URL.RequestURI())
 	if len(m) < 3 {
+		debug("%s didn't match urlRe", req.URL.RequestURI())
 		errorResp(w)
 		return
 	}
