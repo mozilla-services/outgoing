@@ -89,7 +89,7 @@ func home(w http.ResponseWriter) {
 	w.Write([]byte(homeHtml))
 }
 
-func get_version(w http.ResponseWriter) {
+func getVersion(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(versionFile)
 }
@@ -107,7 +107,7 @@ func readReq(w http.ResponseWriter, req *http.Request) {
 		home(w)
 		return
 	case "/__version__":
-		get_version(w)
+		getVersion(w)
 		return
 	case "/__heartbeat__":
 		_, err := w.Write([]byte("OK"))
