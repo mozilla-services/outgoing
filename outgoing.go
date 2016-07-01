@@ -4,11 +4,15 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"crypto/sha256"
+	"errors"
 	"flag"
 	"fmt"
 	"html"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -17,6 +21,7 @@ var urlRe = regexp.MustCompile(`.*?v1/([^/]+)/(.*)`)
 var secretKey = flag.String("key", "", "The secret key.")
 var debugFlag = flag.Bool("debug", false, "Enable debug logging.")
 var addr = flag.String("addr", ":8000", "Where to bind.")
+var versionFile = []byte("{}") // global variable to save version info
 
 func sha1Str(msg string) string {
 	h := sha1.New()
@@ -82,7 +87,11 @@ func home(w http.ResponseWriter) {
   </body>
 </html>`
 	w.Write([]byte(homeHtml))
+}
 
+func getVersion(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(versionFile)
 }
 
 func debug(format string, v ...interface{}) {
@@ -93,8 +102,24 @@ func debug(format string, v ...interface{}) {
 }
 
 func readReq(w http.ResponseWriter, req *http.Request) {
-	if req.URL.RequestURI() == "/" {
+	switch req.URL.RequestURI() {
+	case "/":
 		home(w)
+		return
+	case "/__version__":
+		getVersion(w)
+		return
+	case "/__heartbeat__":
+		_, err := w.Write([]byte("OK"))
+		if err != nil {
+			log.Print(err)
+		}
+		return
+	case "/__lbheartbeat__":
+		_, err := w.Write([]byte("OK"))
+		if err != nil {
+			log.Print(err)
+		}
 		return
 	}
 
@@ -107,10 +132,36 @@ func readReq(w http.ResponseWriter, req *http.Request) {
 	bounce(w, m[1], m[2])
 }
 
+func readVersionFile() {
+
+	pwd, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	vfiles := [2]string{"/app/version.json", pwd + "/version.json"}
+	for _, v := range vfiles {
+		versionFile, err = ioutil.ReadFile(v)
+		if err != nil {
+			log.Print(err)
+			continue
+		}
+		return
+	}
+
+	// fail if can't find both version files above
+	log.Fatal(errors.New("can't find version.json file"))
+	return
+}
+
 func main() {
 	flag.Parse()
 	if *secretKey == "" {
 		log.Fatal("-key must be set.")
 	}
+
+	// load the version file once
+	readVersionFile()
+
 	http.ListenAndServe(*addr, http.HandlerFunc(readReq))
 }
