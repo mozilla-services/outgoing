@@ -157,7 +157,11 @@ func readVersionFile() {
 func main() {
 	flag.Parse()
 	if *secretKey == "" {
-		log.Fatal("-key must be set.")
+		if os.Getenv("OUTGOING_SECRET_KEY") == "" {
+			log.Fatal("-key must be set.")
+		} else {
+			*secretKey = os.Getenv("OUTGOING_SECRET_KEY")
+		}
 	}
 
 	// load the version file once
