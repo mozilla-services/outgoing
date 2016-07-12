@@ -102,7 +102,7 @@ func debug(format string, v ...interface{}) {
 }
 
 func readReq(w http.ResponseWriter, req *http.Request) {
-	switch req.URL.RequestURI() {
+	switch req.URL.Path {
 	case "/":
 		home(w)
 		return
@@ -123,9 +123,9 @@ func readReq(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	m := urlRe.FindStringSubmatch(req.URL.RequestURI())
+	m := urlRe.FindStringSubmatch(req.URL.Path)
 	if len(m) < 3 {
-		debug("%s didn't match urlRe", req.URL.RequestURI())
+		debug("%s didn't match urlRe", req.URL.Path)
 		errorResp(w)
 		return
 	}
