@@ -55,6 +55,7 @@ func getHmac(url, key string) string {
 }
 
 func TestReq(t *testing.T) {
+	// Test URL no query string
 	hSig := getHmac("http://www.mozilla.org/", "secret")
 
 	rec := httptest.NewRecorder()
@@ -70,6 +71,23 @@ func TestReq(t *testing.T) {
 		t.Errorf("http://www.mozilla.org/ is not in %s.", rec.Body.String())
 	}
 
+	// Test urls with & character
+	hSig = getHmac("http://www.mozilla.org/?foo=bar&boo=baz", "secret")
+
+	rec = httptest.NewRecorder()
+	req, err = http.NewRequest("GET", "/v1/"+hSig+"/http%3A//www.mozilla.org/%3Ffoo=bar&boo=baz", nil)
+	if err != nil {
+		t.Fatalf("hmac: %s err: %v", hSig, err)
+	}
+	readReq(rec, req)
+	if rec.Code != 200 {
+		t.Errorf("Expected %d, returned %d. hmac: %s", 200, rec.Code, hSig)
+	}
+	if !strings.Contains(rec.Body.String(), `href="http://www.mozilla.org/?foo=bar&amp;boo=baz"`) {
+		t.Errorf("http://www.mozilla.org/?foo=bar&amp;boo=baz is not in %s.", rec.Body.String())
+	}
+
+	// Test bad secret
 	hSig = getHmac("http://www.mozilla.org/", "badsecret")
 
 	rec = httptest.NewRecorder()

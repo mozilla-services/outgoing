@@ -7,7 +7,6 @@ import (
 	"errors"
 	"flag"
 	"fmt"
-	"html"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -54,21 +53,20 @@ func bounce(w http.ResponseWriter, sig, url string) {
 		return
 	}
 
-	safeUrl := html.EscapeString(url)
-	if safeUrl[:10] == "javascript" {
+	if url[:10] == "javascript" {
 		debug("URL starts with javascript url: %v", url)
 		errorResp(w)
 		return
 	}
-	if !strings.Contains(safeUrl, "://") {
-		safeUrl = "http://" + safeUrl
+	if !strings.Contains(url, "://") {
+		url = "http://" + url
 	}
 
 	err := redirectTemplate.Execute(
 		w,
 		&struct {
 			Url string
-		}{safeUrl},
+		}{url},
 	)
 	if err != nil {
 		log.Println(err)
