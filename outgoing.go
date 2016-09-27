@@ -46,6 +46,18 @@ func validateSig(url, sig string) bool {
 	return false
 }
 
+func validURL(url string) bool {
+	if strings.HasPrefix(url, "http://") {
+		return true
+	}
+
+	if strings.HasPrefix(url, "https://") {
+		return true
+	}
+
+	return false
+}
+
 func bounce(w http.ResponseWriter, sig, url string) {
 	if !validateSig(url, sig) {
 		debug("Could not validate sig, url: %v, sig: %v", url, sig)
@@ -53,13 +65,10 @@ func bounce(w http.ResponseWriter, sig, url string) {
 		return
 	}
 
-	if url[:10] == "javascript" {
-		debug("URL starts with javascript url: %v", url)
+	if !validURL(url) {
+		debug("URL is not valid: %v", url)
 		errorResp(w)
 		return
-	}
-	if !strings.Contains(url, "://") {
-		url = "http://" + url
 	}
 
 	err := redirectTemplate.Execute(

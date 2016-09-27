@@ -62,6 +62,7 @@ func TestReq(t *testing.T) {
 	}{
 		{"http://www.mozilla.org/", "http%3A//www.mozilla.org/", `href="http://www.mozilla.org/"`},                                                                                                                                                                                              // Plain URL
 		{"http://www.mozilla.org/?foo=bar&boo=baz", "http%3A//www.mozilla.org/%3Ffoo=bar&boo=baz", `href="http://www.mozilla.org/?foo=bar&amp;boo=baz`},                                                                                                                                         // URL with query params
+		{"https://www.mozilla.org/?foo=bar&boo=baz", "https%3A//www.mozilla.org/%3Ffoo=bar&boo=baz", `href="https://www.mozilla.org/?foo=bar&amp;boo=baz`},                                                                                                                                      // URL with query params
 		{`http://www.mozilla.org/"><script>alert()</script>`, `http%3A//www.mozilla.org/%22%3E%3Cscript%3Ealert%28%29%3C/script%3E%0A`, `<a href="http://www.mozilla.org/%22%3e%3cscript%3ealert%28%29%3c/script%3e">http://www.mozilla.org/&#34;&gt;&lt;script&gt;alert()&lt;/script&gt;</a>`}, // URL with crazy characters
 	}
 	for _, tc := range testCases {
@@ -89,6 +90,8 @@ func TestReq(t *testing.T) {
 	}{
 		{"http://www.mozilla.org/", "http%3A//www.mozilla.org/", "badsecret"},
 		{"javascript:alert()", "javascript:alert()", "secret"},
+		{"www.mozilla.org", "www.mozilla.org", "secret"},
+		{"ftp://www.mozilla.org", "ftp://www.mozilla.org", "secret"},
 	}
 
 	for _, tc := range failCases {
@@ -100,7 +103,7 @@ func TestReq(t *testing.T) {
 		}
 		readReq(rec, req)
 		if rec.Code != 400 {
-			t.Errorf("Expected %d, returned %d.", 400, rec.Code)
+			t.Errorf("URL: %s Expected 400, returned %d.", tc.URL, rec.Code)
 		}
 	}
 }
