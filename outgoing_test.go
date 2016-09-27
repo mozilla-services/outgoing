@@ -67,7 +67,7 @@ func TestReq(t *testing.T) {
 	if rec.Code != 200 {
 		t.Errorf("Expected %d, returned %d. hmac: %s", 200, rec.Code, hSig)
 	}
-	if !strings.Contains(rec.Body.String(), "http://www.mozilla.org/") {
+	if !strings.Contains(rec.Body.String(), `href="http://www.mozilla.org/"`) {
 		t.Errorf("http://www.mozilla.org/ is not in %s.", rec.Body.String())
 	}
 
