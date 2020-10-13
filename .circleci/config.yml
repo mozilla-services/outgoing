@@ -1,0 +1,69 @@
+# These environment variables must be set in CircleCI UI
+#
+# DOCKERHUB_REPO - docker hub repo, format: <username>/<repo>
+# DOCKER_USER
+# DOCKER_PASS
+#
+version: 2.1
+commands:
+  build_and_push_container_image:
+    description: "Builds and pushes a Docker image"
+    parameters:
+      dockerfile:
+        type: string
+        default: "Dockerfile"
+      image_tag:
+        type: string
+        default: "latest"
+    steps:
+      - run: >
+          printf '{"commit":"%s","version":"%s","source":"https://github.com/%s/%s","build":"%s"}\n'
+          "$CIRCLE_SHA1"
+          "$CIRCLE_TAG"
+          "$CIRCLE_PROJECT_USERNAME"
+          "$CIRCLE_PROJECT_REPONAME"
+          "$CIRCLE_BUILD_URL"
+          > version.json
+      - run:
+          name: Build docker image and push to repo
+          command: |
+            docker version
+            docker build -t app:build -f << parameters.dockerfile >> .
+            # write the sha256 sum to an artifact to make image verification easier
+            docker inspect --format '{{json .Config.Image}}' app:build | tr -d '"''"' | tee $CIRCLE_ARTIFACTS/docker-image-shasum256.txt
+            docker tag app:build "${DOCKERHUB_REPO}":<< parameters.image_tag >>
+            docker login -u "${DOCKERHUB_USER}" -p "${DOCKERHUB_PASS}"
+            docker push "${DOCKERHUB_REPO}":<< parameters.image_tag >>
+            docker images
+
+jobs:
+  build:
+    machine: true
+    steps:
+      - checkout
+      - build_and_push_container_image:
+          image_tag: latest
+          dockerfile: "Dockerfile.deploy"
+
+  build-tag:
+    machine: true
+    steps:
+      - checkout
+      - build_and_push_container_image:
+          image_tag: "${CIRCLE_TAG}"
+          dockerfile: "Dockerfile.deploy"
+
+workflows:
+  version: 2
+  build_test_deploy_release:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only: master
+      - build-tag:
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
