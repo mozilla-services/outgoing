@@ -29,12 +29,17 @@ commands:
           command: |
             docker version
             docker build -t app:build -f << parameters.dockerfile >> .
-            # write the sha256 sum to an artifact to make image verification easier
-            docker inspect --format '{{json .Config.Image}}' app:build | tr -d '"''"' | tee $CIRCLE_ARTIFACTS/docker-image-shasum256.txt
             docker tag app:build "${DOCKERHUB_REPO}":<< parameters.image_tag >>
             docker login -u "${DOCKERHUB_USER}" -p "${DOCKERHUB_PASS}"
             docker push "${DOCKERHUB_REPO}":<< parameters.image_tag >>
             docker images
+      - run:
+          name: Write the sha256 sum to an artifact to make image verification easier
+          command: |
+            docker inspect --format '{{json .Config.Image}}' app:build | tr -d '"''"' | tee /tmp/docker-image-shasum256.txt
+      - store_artifacts:
+          path: /tmp/docker-image-shasum256.txt
+          destination: docker-image-shasum256.txt
 
 jobs:
   build:
