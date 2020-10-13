@@ -42,8 +42,6 @@ jobs:
     steps:
       - checkout
       - build_and_push_container_image:
-          image_tag: latest
-          dockerfile: "Dockerfile.deploy"
 
   build-tag:
     machine: true
@@ -51,7 +49,6 @@ jobs:
       - checkout
       - build_and_push_container_image:
           image_tag: "${CIRCLE_TAG}"
-          dockerfile: "Dockerfile.deploy"
 
 workflows:
   version: 2
