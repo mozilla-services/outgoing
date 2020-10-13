@@ -41,7 +41,7 @@ jobs:
     machine: true
     steps:
       - checkout
-      - build_and_push_container_image:
+      - build_and_push_container_image
 
   build-tag:
     machine: true
