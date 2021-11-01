@@ -9,7 +9,7 @@ Release: r1.%{shortrev}%{?dist}
 Summary: Redirects outgoing urls.
 
 License: MPL
-URL: https://github.com/oremj/outgoing
+URL: https://github.com/mozilla-services/outgoing
 Source0: outgoing-redirector-%{version}.tar.gz
 BuildRoot: %(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
